@@ -45,7 +45,7 @@ function AuthPage() {
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: email.trim(),
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
       });
       if (error) throw error;
       toast.success("Confirmation link resent! Please check your inbox and spam folder.");
@@ -64,7 +64,10 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { display_name: name.trim() }, emailRedirectTo: window.location.origin },
+          options: {
+            data: { display_name: name.trim() },
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
         });
         if (error) throw error;
         if (!data.session) {
@@ -98,11 +101,18 @@ function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo: `${window.location.origin}/dashboard` },
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message.toLowerCase().includes("not enabled") || error.message.toLowerCase().includes("unsupported provider")) {
+          toast.error("Google login is not enabled in your Supabase project. Go to Supabase > Authentication > Providers > Google to enable it.");
+          return;
+        }
+        throw error;
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Sign-in didn't work. Try again.");
+    } finally {
       setBusy(false);
     }
   }
