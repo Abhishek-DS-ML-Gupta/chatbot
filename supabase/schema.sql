@@ -115,3 +115,4 @@ DO $$ BEGIN
     WITH CHECK (bucket_id = 'mortagi-files' AND (storage.foldername(name))[1] = auth.uid()::text);
   END IF;
 END $$;
+

@@ -14,12 +14,6 @@ export const Route = createFileRoute("/images")({
   }),
 });
 
-const SUGGESTIONS = [
-  "A photorealistic portrait of a fox in an autumn forest, golden hour lighting",
-  "Cyberpunk neon street market in Tokyo with rain reflections, cinematic 8k",
-  "Minimalist architectural house in Norwegian fjords, moody mist atmosphere",
-  "Cosmic nebula in deep space shaped like an eagle, vibrant starlight",
-];
 
 function ImageGenerationPage() {
   const navigate = useNavigate();
