@@ -1,0 +1,1 @@
+CREATE POLICY "Users manage files in own Mortagi folder" ON storage.objects FOR ALL TO authenticated USING (bucket_id = 'mortagi-files' AND (storage.foldername(name))[1] = auth.uid()::text) WITH CHECK (bucket_id = 'mortagi-files' AND (storage.foldername(name))[1] = auth.uid()::text);

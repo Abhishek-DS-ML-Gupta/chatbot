@@ -1,0 +1,2 @@
+ALTER TABLE public.conversation_messages ADD COLUMN message_key text;
+ALTER TABLE public.conversation_messages ADD CONSTRAINT conversation_messages_conversation_message_key_unique UNIQUE (conversation_id, message_key);
