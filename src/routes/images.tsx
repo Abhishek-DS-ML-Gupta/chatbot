@@ -24,6 +24,7 @@ const SUGGESTIONS = [
 function ImageGenerationPage() {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState("klingai/kling-v3-image");
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [resolution, setResolution] = useState("1k");
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,7 @@ function ImageGenerationPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: prompt.trim(),
+          model,
           aspect_ratio: aspectRatio,
           resolution,
         }),
@@ -121,40 +123,65 @@ function ImageGenerationPage() {
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
               <div className="flex flex-wrap items-center gap-3 text-sm">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">Ratio:</span>
-                  {(["16:9", "1:1", "9:16"] as const).map((ratio) => (
+                  <span className="text-xs text-muted-foreground">Model:</span>
+                  {[
+                    { id: "klingai/kling-v3-image", label: "Kling v3" },
+                    { id: "@cf/black-forest-labs/flux-1-schnell", label: "Flux Schnell" },
+                  ].map((m) => (
                     <button
-                      key={ratio}
+                      key={m.id}
                       type="button"
-                      onClick={() => setAspectRatio(ratio)}
+                      onClick={() => setModel(m.id)}
                       className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                        aspectRatio === ratio
+                        model === m.id
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-muted-foreground hover:bg-muted/80"
                       }`}
                     >
-                      {ratio}
+                      {m.label}
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">Quality:</span>
-                  {(["1k", "2k"] as const).map((res) => (
-                    <button
-                      key={res}
-                      type="button"
-                      onClick={() => setResolution(res)}
-                      className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                        resolution === res
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                    >
-                      {res}
-                    </button>
-                  ))}
-                </div>
+                {model.includes("kling") && (
+                  <>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">Ratio:</span>
+                      {(["16:9", "1:1", "9:16"] as const).map((ratio) => (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() => setAspectRatio(ratio)}
+                          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                            aspectRatio === ratio
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          }`}
+                        >
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">Quality:</span>
+                      {(["1k", "2k"] as const).map((res) => (
+                        <button
+                          key={res}
+                          type="button"
+                          onClick={() => setResolution(res)}
+                          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                            resolution === res
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          }`}
+                        >
+                          {res}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               <Button type="submit" disabled={loading} className="gap-2">
