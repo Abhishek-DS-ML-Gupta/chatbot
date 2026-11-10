@@ -51,14 +51,14 @@ function createSupabaseClient() {
     (typeof process !== "undefined"
       ? process.env?.["VITE_SUPABASE_URL"] || process.env?.["SUPABASE_URL"]
       : undefined) ||
-    "https://c--6a1757d6-ae65-49d8-9be3-74bbee9817dd-prod.lovable.cloud";
+    "https://uilmuaxqhhgxxczniupv.supabase.co";
 
   const SUPABASE_PUBLISHABLE_KEY =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
     (typeof process !== "undefined"
       ? process.env?.["VITE_SUPABASE_PUBLISHABLE_KEY"] || process.env?.["SUPABASE_PUBLISHABLE_KEY"]
       : undefined) ||
-    "sb_publishable_l8XWwLlPxN7AC8CVSmN6Vw_KEHcJoSe";
+    "sb_publishable_BGuzMLqSzhW_tpRClwMq6A_onKqgA_K";
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
