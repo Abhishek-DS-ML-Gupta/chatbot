@@ -29,10 +29,26 @@ function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    void Promise.all([getConversations(), loadProfile(user.id, user.email)]).then(([items, profile]) => {
-      setConversations(items);
-      setDisplayName(profile.display_name || user.email?.split("@")[0] || "there");
-    }).catch((error: unknown) => toast.error(error instanceof Error ? error.message : "Couldn't load your workspace."));
+    const fallbackName =
+      (user.user_metadata?.["full_name"] as string | undefined) ||
+      (user.user_metadata?.["name"] as string | undefined) ||
+      (user.user_metadata?.["display_name"] as string | undefined) ||
+      user.email?.split("@")[0] ||
+      "there";
+    setDisplayName(fallbackName);
+
+    void Promise.allSettled([getConversations(), loadProfile(user.id, user.email)]).then(([convRes, profileRes]) => {
+      if (convRes.status === "fulfilled" && convRes.value) {
+        setConversations(convRes.value);
+      }
+      if (profileRes.status === "fulfilled" && profileRes.value?.display_name) {
+        setDisplayName(profileRes.value.display_name);
+      }
+      if (convRes.status === "rejected" && profileRes.status === "rejected") {
+        const error = convRes.reason;
+        console.warn("Workspace tables not ready:", error);
+      }
+    });
   }, [user]);
 
   async function startChat() {

@@ -29,7 +29,19 @@ function AccountPage() {
 
   useEffect(() => {
     if (!user) return;
-    void loadProfile(user.id, user.email).then((profile) => setDisplayName(profile.display_name)).catch((error: unknown) => toast.error(error instanceof Error ? error.message : "Couldn't load profile."));
+    const initialName =
+      (user.user_metadata?.["full_name"] as string | undefined) ||
+      (user.user_metadata?.["name"] as string | undefined) ||
+      user.email?.split("@")[0] ||
+      "";
+    setDisplayName(initialName);
+    void loadProfile(user.id, user.email)
+      .then((profile) => {
+        if (profile?.display_name) setDisplayName(profile.display_name);
+      })
+      .catch((error: unknown) => {
+        console.warn("Profile load warning:", error);
+      });
   }, [user]);
 
   async function saveProfile() {
