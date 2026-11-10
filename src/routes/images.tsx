@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeftIcon, DownloadIcon, SparklesIcon, WandSparklesIcon } from "lucide-react";
+import { ArrowLeftIcon, DownloadIcon, WandSparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/images")({
     ],
   }),
 });
+
 
 
 function ImageGenerationPage() {
@@ -182,24 +183,6 @@ function ImageGenerationPage() {
                 <WandSparklesIcon className="size-4" />
                 {loading ? "Generating…" : "Generate Image"}
               </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <SparklesIcon className="size-3.5" /> Try an example:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTIONS.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  type="button"
-                  onClick={() => setPrompt(suggestion)}
-                  className="rounded-full border border-border bg-card px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-accent"
-                >
-                  {suggestion}
-                </button>
-              ))}
             </div>
           </div>
         </form>
