@@ -19,7 +19,7 @@ export const Route = createFileRoute("/images")({
 function ImageGenerationPage() {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("klingai/kling-v3-image");
+  const [model, setModel] = useState("huggingface/dreamshaper-8");
   const [aspectRatio, setAspectRatio] = useState("16:9");
   const [resolution, setResolution] = useState("1k");
   const [loading, setLoading] = useState(false);
@@ -120,8 +120,9 @@ function ImageGenerationPage() {
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs text-muted-foreground">Model:</span>
                   {[
-                    { id: "klingai/kling-v3-image", label: "Kling v3" },
+                    { id: "huggingface/dreamshaper-8", label: "Dreamshaper 8 (HF)" },
                     { id: "@cf/black-forest-labs/flux-1-schnell", label: "Flux Schnell" },
+                    { id: "klingai/kling-v3-image", label: "Kling v3" },
                   ].map((m) => (
                     <button
                       key={m.id}
@@ -138,7 +139,7 @@ function ImageGenerationPage() {
                   ))}
                 </div>
 
-                {model.includes("kling") && (
+                {(model.includes("kling") || model.includes("huggingface")) && (
                   <>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs text-muted-foreground">Ratio:</span>
