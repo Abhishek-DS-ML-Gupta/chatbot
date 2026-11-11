@@ -54,7 +54,7 @@ export const Route = createFileRoute("/api/images")({
 
             // app.py signature:
             // infer(prompt, negative_prompt, seed, randomize_seed, width, height, guidance_scale, num_inference_steps)
-            const result = (await app.predict(0, [
+            const result = (await app.predict("/infer", [
               prompt,
               payload.negative_prompt || "",
               0,
@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/images")({
               width,
               height,
               7.5,
-              35,
+              30,
             ])) as { data?: unknown[] };
 
             if (result && Array.isArray(result.data) && result.data[0]) {
