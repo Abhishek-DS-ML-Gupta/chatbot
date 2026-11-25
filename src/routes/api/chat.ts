@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, type UIMessage } from "ai";
 import { inflateSync } from "node:zlib";
+import mammoth from "mammoth";
+import { extractText } from "unpdf";
 import { streamGatewayChat } from "@/lib/chat/responses";
 
 interface RawPart {
@@ -18,6 +20,27 @@ function decodeDataUrl(dataUrl: string): { mime: string; buffer: Buffer } | null
     mime: match[1] || "application/octet-stream",
     buffer: Buffer.from(match[2], "base64"),
   };
+}
+
+async function extractPdfContent(buffer: Buffer): Promise<string> {
+  try {
+    const result = await extractText(new Uint8Array(buffer), { mergePages: true });
+    const text = Array.isArray(result.text) ? result.text.join("\n") : result.text;
+    const trimmed = text?.trim() ?? "";
+    if (trimmed) return trimmed.slice(0, 28000);
+  } catch {
+    // Fall back to lightweight stream scan below.
+  }
+  return extractPdfText(buffer);
+}
+
+async function extractDocxContent(buffer: Buffer): Promise<string> {
+  try {
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value.trim().slice(0, 28000);
+  } catch {
+    return "";
+  }
 }
 
 function extractPdfText(buffer: Buffer): string {
@@ -210,18 +233,35 @@ export const Route = createFileRoute("/api/chat")({
 
                   const decoded = decodeDataUrl(part.url);
                   if (decoded) {
-                    if (decoded.mime === "application/pdf" || filename.toLowerCase().endsWith(".pdf")) {
-                      const pdfText = extractPdfText(decoded.buffer);
+                    const lowerName = filename.toLowerCase();
+                    const isPdf = decoded.mime === "application/pdf" || lowerName.endsWith(".pdf");
+                    const isDocx =
+                      decoded.mime ===
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+                      lowerName.endsWith(".docx");
+
+                    if (isPdf) {
+                      const pdfText = await extractPdfContent(decoded.buffer);
                       return {
                         type: "text",
                         text: pdfText
                           ? `[Attached PDF "${filename}" content:\n${pdfText}\n]`
-                          : `[Attached PDF "${filename}", but no selectable text could be extracted (it may be scanned).]`,
+                          : `[Attached PDF "${filename}", but no selectable text could be extracted (it may be a scanned image PDF).]`,
+                      };
+                    }
+
+                    if (isDocx) {
+                      const docxText = await extractDocxContent(decoded.buffer);
+                      return {
+                        type: "text",
+                        text: docxText
+                          ? `[Attached DOCX "${filename}" content:\n${docxText}\n]`
+                          : `[Attached DOCX "${filename}", but no readable text could be extracted.]`,
                       };
                     }
 
                     if (isReadableTextFile(decoded.mime, filename)) {
-                      const content = decoded.buffer.toString("utf8").slice(0, 24000);
+                      const content = decoded.buffer.toString("utf8").slice(0, 28000);
                       return {
                         type: "text",
                         text: `[Attached file "${filename}" content:\n${content}\n]`,
