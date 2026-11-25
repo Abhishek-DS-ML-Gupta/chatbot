@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
 import { toast } from "sonner";
 import {
   Conversation,
@@ -16,7 +16,13 @@ import {
 } from "@/components/ai-elements/message";
 import {
   PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputActionAddScreenshot,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
   PromptInputFooter,
+  PromptInputHeader,
   PromptInputSelect,
   PromptInputSelectContent,
   PromptInputSelectItem,
@@ -25,10 +31,12 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
+  usePromptInputAttachments,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { saveThreadMessages } from "@/lib/threads";
 import {
   ArrowUpIcon,
@@ -36,13 +44,15 @@ import {
   CopyIcon,
   CpuIcon,
   DownloadIcon,
+  FileTextIcon,
   ImageIcon,
   MessageSquareTextIcon,
+  PlusIcon,
   RatioIcon,
   SquareIcon,
   WandSparklesIcon,
+  XIcon,
 } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 
 interface ChatWindowProps {
   threadId: string;
@@ -54,7 +64,7 @@ type ComposerMode = "chat" | "image";
 
 const CHAT_SUGGESTIONS = [
   "Explain quantum computing simply",
-  "Write a short poem about coffee",
+  "Summarize an uploaded document or photo",
   "Plan a 3-day trip to Kyoto",
   "Ideas for a weekend AI project",
 ];
@@ -102,6 +112,48 @@ function MortagiAvatar({ pulsing = false }: { pulsing?: boolean }) {
   );
 }
 
+function AttachmentPreviewHeader() {
+  const { files, remove } = usePromptInputAttachments();
+  if (files.length === 0) return null;
+
+  return (
+    <PromptInputHeader className="flex flex-wrap gap-2 pb-1 pt-2.5">
+      {files.map((file) => {
+        const isImage = file.mediaType?.startsWith("image/") || file.url?.startsWith("data:image/");
+        return (
+          <div
+            key={file.id}
+            className="group/att relative flex items-center gap-2 rounded-xl border border-border bg-muted/60 p-1.5 pr-7 text-xs shadow-2xs"
+          >
+            {isImage && file.url ? (
+              <img
+                src={file.url}
+                alt={file.filename || "Attachment"}
+                className="size-10 rounded-lg object-cover"
+              />
+            ) : (
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-background text-muted-foreground">
+                <FileTextIcon className="size-4" />
+              </span>
+            )}
+            <span className="max-w-[140px] truncate font-medium text-foreground">
+              {file.filename || (isImage ? "Image" : "Document")}
+            </span>
+            <button
+              type="button"
+              aria-label={`Remove ${file.filename || "attachment"}`}
+              onClick={() => remove(file.id)}
+              className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-background/90 text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            >
+              <XIcon className="size-3" />
+            </button>
+          </div>
+        );
+      })}
+    </PromptInputHeader>
+  );
+}
+
 export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: ChatWindowProps) {
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -110,6 +162,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
   const [aspectRatio, setAspectRatio] = useState<string>("16:9");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [freshImageMsgId, setFreshImageMsgId] = useState<string | null>(null);
 
   const { messages, setMessages, sendMessage, status, stop, error } = useChat({
     id: threadId,
@@ -169,9 +222,10 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
 
       const mimeMatch = data.image.match(/^data:([^;]+);/);
       const mediaType = mimeMatch?.[1] || "image/webp";
+      const assistantMsgId = crypto.randomUUID();
 
       const assistantMessage: UIMessage = {
-        id: crypto.randomUUID(),
+        id: assistantMsgId,
         role: "assistant",
         parts: [
           {
@@ -182,6 +236,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
         ],
       };
 
+      setFreshImageMsgId(assistantMsgId);
       setMessages((prev) => {
         const next = [...prev, assistantMessage];
         saveThreadMessages(threadId, next);
@@ -197,14 +252,26 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
 
   const handleSubmit = (message: PromptInputMessage) => {
     const text = message.text?.trim();
-    if (!text || status === "submitted" || status === "streaming" || isGeneratingImage) return;
+    const files: FileUIPart[] = message.files ?? [];
+    if ((!text && files.length === 0) || status === "submitted" || status === "streaming" || isGeneratingImage) {
+      return;
+    }
 
     if (mode === "image") {
+      if (!text) {
+        toast.error("Please enter a prompt to generate an image.");
+        return;
+      }
       void generateImageInChat(text);
       return;
     }
 
-    sendMessage({ text });
+    const promptText = text || "Please analyze the attached file(s).";
+    if (files.length > 0) {
+      void sendMessage({ text: promptText, files });
+    } else {
+      void sendMessage({ text: promptText });
+    }
   };
 
   const handleDownloadImage = (imageUrl: string) => {
@@ -239,7 +306,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
               mode={mode}
               onPick={(text) => {
                 if (mode === "image") void generateImageInChat(text);
-                else sendMessage({ text });
+                else void sendMessage({ text });
               }}
             />
           ) : (
@@ -249,6 +316,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
                 message.role === "assistant" &&
                 messageIndex === messages.length - 1;
               const isAssistant = message.role === "assistant";
+              const isFreshImage = message.id === freshImageMsgId;
               const textContent = message.parts
                 .filter((p) => p.type === "text")
                 .map((p) => p.text)
@@ -280,24 +348,57 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
                               );
                             }
                             return (
-                              <div key={index} className="relative">
-                                <MessageResponse>{part.text}</MessageResponse>
-                                {isStreamingThis ? (
-                                  <span
-                                    aria-hidden="true"
-                                    className="ml-1 inline-block size-2.5 translate-y-0.5 animate-pulse rounded-full bg-foreground/80"
-                                  />
-                                ) : null}
-                              </div>
+                              <MessageResponse
+                                key={index}
+                                isAnimating={isStreamingThis}
+                                animated
+                                caret="circle"
+                              >
+                                {part.text}
+                              </MessageResponse>
                             );
                           }
                           if (part.type === "file" && part.url) {
+                            const isImage =
+                              part.mediaType?.startsWith("image/") ||
+                              part.url.startsWith("data:image/");
+
+                            if (!isImage) {
+                              return (
+                                <div
+                                  key={index}
+                                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/70 px-3 py-1.5 text-xs font-medium"
+                                >
+                                  <FileTextIcon className="size-3.5 text-muted-foreground" />
+                                  <span className="max-w-[200px] truncate">
+                                    {part.filename || "Attached document"}
+                                  </span>
+                                </div>
+                              );
+                            }
+
+                            if (!isAssistant) {
+                              return (
+                                <div
+                                  key={index}
+                                  className="overflow-hidden rounded-xl border border-border bg-background"
+                                >
+                                  <img
+                                    src={part.url}
+                                    alt={part.filename || "Uploaded image"}
+                                    className="max-h-56 w-auto object-contain"
+                                  />
+                                </div>
+                              );
+                            }
+
                             return (
-                              <div
-                                key={index}
-                                className="animate-in fade-in zoom-in-[0.98] duration-500 space-y-2.5"
-                              >
-                                <div className="group/img relative w-fit overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                              <div key={index} className="space-y-2.5">
+                                <div
+                                  className={`group/img relative w-fit overflow-hidden rounded-2xl border border-border bg-card shadow-sm ${
+                                    isFreshImage ? "chatgpt-image-reveal" : ""
+                                  }`}
+                                >
                                   <img
                                     src={part.url}
                                     alt="Generated visual"
@@ -352,16 +453,16 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
                   <Shimmer className="text-sm font-medium">Creating image…</Shimmer>
                 </div>
                 <div
-                  className={`image-skeleton-sweep relative w-full overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-muted via-muted/70 to-accent/50 shadow-xs ${aspectClassFor(
+                  className={`image-skeleton-sweep relative w-full overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-br from-muted via-accent/40 to-secondary shadow-xs ${aspectClassFor(
                     aspectRatio,
                   )}`}
                 >
-                  <div className="flex size-full flex-col items-center justify-center gap-2 p-6 text-center">
-                    <div className="grid size-11 animate-pulse place-items-center rounded-2xl border border-border/60 bg-background/60 backdrop-blur-sm">
+                  <div className="flex size-full flex-col items-center justify-center gap-2.5 p-6 text-center backdrop-blur-xl">
+                    <div className="grid size-11 animate-pulse place-items-center rounded-2xl border border-border/60 bg-background/60 shadow-2xs backdrop-blur-sm">
                       <ImageIcon className="size-5 text-muted-foreground/80" />
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground/80">
-                      Rendering with {IMAGE_MODELS.find((m) => m.id === imageModel)?.label ?? "AI"}
+                    <span className="text-xs font-medium text-muted-foreground/85">
+                      Generating with {IMAGE_MODELS.find((m) => m.id === imageModel)?.label ?? "AI"}
                     </span>
                   </div>
                 </div>
@@ -382,21 +483,42 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-4 md:pb-6">
         <PromptInput
+          accept="*/*"
+          multiple
+          maxFileSize={10 * 1024 * 1024}
+          onError={(err) => toast.error(err.message)}
           onSubmit={handleSubmit}
           className="[&_[data-slot=input-group]]:rounded-3xl [&_[data-slot=input-group]]:border-border/90 [&_[data-slot=input-group]]:bg-card [&_[data-slot=input-group]]:shadow-composer [&_[data-slot=input-group]]:transition-all [&_[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-0 [&_[data-slot=input-group]]:focus-within:border-foreground/25 [&_[data-slot=input-group]]:focus-within:shadow-lg"
         >
+          <AttachmentPreviewHeader />
           <PromptInputTextarea
             ref={textareaRef}
             autoFocus
             placeholder={
               mode === "image"
                 ? "Describe the image you want to create…"
-                : "Message Mortagi…"
+                : "Ask anything, or attach a file / image…"
             }
             className="min-h-[56px] text-[15px]"
           />
           <PromptInputFooter className="justify-between pt-1">
             <PromptInputTools className="flex-wrap gap-1.5">
+              {mode === "chat" ? (
+                <PromptInputActionMenu>
+                  <PromptInputActionMenuTrigger
+                    tooltip="Attach files or images"
+                    aria-label="Attach files or images"
+                    className="size-8 rounded-full border border-border/70 bg-muted/50 text-foreground hover:bg-muted"
+                  >
+                    <PlusIcon className="size-4" />
+                  </PromptInputActionMenuTrigger>
+                  <PromptInputActionMenuContent>
+                    <PromptInputActionAddAttachments label="Upload files or images" />
+                    <PromptInputActionAddScreenshot label="Capture screenshot" />
+                  </PromptInputActionMenuContent>
+                </PromptInputActionMenu>
+              ) : null}
+
               <PromptInputSelect
                 value={mode}
                 onValueChange={(value) => setMode(value as ComposerMode)}
@@ -529,7 +651,7 @@ function EmptyState({
         <p className="text-sm text-muted-foreground">
           {mode === "image"
             ? "Describe any scene — Mortagi generates visuals right here in chat."
-            : "Ask anything, or switch the mode below to create images."}
+            : "Ask anything, upload docs or images, or switch to Image mode below."}
         </p>
       </div>
       <div className="flex max-w-lg flex-wrap items-center justify-center gap-2">

@@ -170,3 +170,25 @@
     transparent 100%
   );
 }
+
+@keyframes chatgpt-image-reveal {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    filter: blur(16px);
+    opacity: 0.75;
+  }
+  45% {
+    clip-path: inset(0 0 35% 0);
+    filter: blur(8px);
+    opacity: 0.92;
+  }
+  100% {
+    clip-path: inset(0 0 0% 0);
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+.chatgpt-image-reveal {
+  animation: chatgpt-image-reveal 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
