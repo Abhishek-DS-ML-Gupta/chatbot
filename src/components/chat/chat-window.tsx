@@ -383,7 +383,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
       <div className="mx-auto w-full max-w-3xl px-4 pb-4 md:pb-6">
         <PromptInput
           onSubmit={handleSubmit}
-          className="rounded-3xl border border-border/90 bg-card shadow-composer transition-all focus-within:border-foreground/25 focus-within:shadow-lg"
+          className="[&_[data-slot=input-group]]:rounded-3xl [&_[data-slot=input-group]]:border-border/90 [&_[data-slot=input-group]]:bg-card [&_[data-slot=input-group]]:shadow-composer [&_[data-slot=input-group]]:transition-all [&_[data-slot=input-group]]:has-[[data-slot=input-group-control]:focus-visible]:ring-0 [&_[data-slot=input-group]]:focus-within:border-foreground/25 [&_[data-slot=input-group]]:focus-within:shadow-lg"
         >
           <PromptInputTextarea
             ref={textareaRef}
@@ -409,11 +409,6 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
                       : "border-border/70 bg-muted/50 text-foreground hover:bg-muted"
                   }`}
                 >
-                  {mode === "image" ? (
-                    <WandSparklesIcon className="size-3.5 text-primary" />
-                  ) : (
-                    <MessageSquareTextIcon className="size-3.5 text-primary" />
-                  )}
                   <PromptInputSelectValue />
                 </PromptInputSelectTrigger>
                 <PromptInputSelectContent align="start">
