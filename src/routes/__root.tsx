@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth-context";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function NotFoundComponent() {
   return (
@@ -132,7 +133,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AuthProvider>
-        <Outlet />
+        <TooltipProvider delayDuration={200}>
+          <Outlet />
+        </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
