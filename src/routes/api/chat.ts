@@ -25,8 +25,17 @@ export const Route = createFileRoute("/api/chat")({
               parts: [{ type: "text", text: msg["content"] }],
             };
           }
+          if (Array.isArray(msg["parts"])) {
+            const sanitizedParts = (msg["parts"] as Array<Record<string, unknown>>).map((part) => {
+              if (part["type"] === "file" && typeof part["url"] === "string") {
+                return { type: "text", text: "[Generated image]" };
+              }
+              return part;
+            });
+            return { ...msg, parts: sanitizedParts };
+          }
           return msg;
-        }) as UIMessage[];
+        }) as unknown as UIMessage[];
 
         const modelMessages = await convertToModelMessages(messages);
         return streamGatewayChat(request, modelMessages, messages);

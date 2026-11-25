@@ -1,8 +1,10 @@
 import { useCallback } from "react";
-import { PanelLeftIcon } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { PanelLeftIcon, UserRoundIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThreadSidebar } from "@/components/chat/thread-sidebar";
 import { ChatWindow } from "@/components/chat/chat-window";
+import { useAuth } from "@/lib/auth-context";
 import { createThread, deleteThread, type StoredThread } from "@/lib/threads";
 
 interface ChatShellProps {
@@ -25,6 +27,8 @@ export function ChatShell({
   onNavigate,
 }: ChatShellProps) {
   const activeThread = threads.find((t) => t.id === threadId);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleNew = useCallback(() => {
     const thread = createThread();
@@ -57,19 +61,32 @@ export function ChatShell({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-2 px-4 py-3 md:px-6">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="md:hidden"
-            onClick={() => onSidebarOpenChange(true)}
-            aria-label="Open sidebar"
-          >
-            <PanelLeftIcon />
-          </Button>
-          <h2 className="truncate text-sm font-medium text-foreground">
-            {activeThread?.title ?? "New chat"}
-          </h2>
+        <header className="flex items-center justify-between gap-2 px-4 py-3 md:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="md:hidden"
+              onClick={() => onSidebarOpenChange(true)}
+              aria-label="Open sidebar"
+            >
+              <PanelLeftIcon />
+            </Button>
+            <h2 className="truncate text-sm font-medium text-foreground">
+              {activeThread?.title ?? "New chat"}
+            </h2>
+          </div>
+          {user ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 gap-1.5"
+              onClick={() => void navigate({ to: "/account" })}
+            >
+              <UserRoundIcon className="size-4" />
+              Account
+            </Button>
+          ) : null}
         </header>
 
         <ChatWindow
