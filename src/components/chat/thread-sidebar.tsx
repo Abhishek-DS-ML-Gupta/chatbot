@@ -9,6 +9,7 @@ import {
 import { threadGroupLabel, type StoredThread } from "@/lib/threads";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import mortagiIcon from "@/assets/mortagi.svg";
 
 const GROUP_ORDER = ["Today", "Yesterday", "Previous 7 days", "Previous 30 days", "Older"];
 
@@ -74,19 +75,8 @@ export function ThreadSidebar({
       >
         <div className="flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
-            <span className="grid size-8 place-items-center rounded-xl bg-primary text-primary-foreground shadow-xs">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="size-4"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 3l2.1 5.4L19.5 10l-5.4 2.1L12 17.5l-2.1-5.4L4.5 10l5.4-1.6L12 3z" />
-              </svg>
+            <span className="grid size-9 place-items-center overflow-hidden rounded-xl border border-sidebar-border bg-card p-0.5 shadow-xs">
+              <img src={mortagiIcon} alt="Mortagi" className="size-full object-contain" />
             </span>
             <span className="font-display text-base font-semibold tracking-tight text-sidebar-foreground">
               Mortagi

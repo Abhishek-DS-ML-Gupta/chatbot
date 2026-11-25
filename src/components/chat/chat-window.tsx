@@ -38,6 +38,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { saveThreadMessages } from "@/lib/threads";
+import mortagiIcon from "@/assets/mortagi.svg";
 import {
   ArrowUpIcon,
   CheckIcon,
@@ -92,22 +93,11 @@ function aspectClassFor(ratio: string): string {
 function MortagiAvatar({ pulsing = false }: { pulsing?: boolean }) {
   return (
     <span
-      className={`grid size-7 shrink-0 place-items-center rounded-full border border-border bg-card text-foreground shadow-2xs ${
-        pulsing ? "animate-pulse ring-2 ring-primary/20" : ""
+      className={`grid size-8 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-card p-0.5 shadow-2xs ${
+        pulsing ? "ring-2 ring-primary/25" : ""
       }`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="size-3.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M12 3l2.1 5.4L19.5 10l-5.4 2.1L12 17.5l-2.1-5.4L4.5 10l5.4-1.6L12 3z" />
-      </svg>
+      <img src={mortagiIcon} alt="Mortagi" className="size-full object-contain" />
     </span>
   );
 }
@@ -626,22 +616,11 @@ function EmptyState({
 
   return (
     <div className="flex size-full flex-col items-center justify-center gap-6 py-16 text-center animate-in fade-in duration-300">
-      <div className="grid size-16 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-composer">
+      <div className="grid size-20 place-items-center rounded-2xl border border-border bg-card p-2 shadow-composer">
         {mode === "image" ? (
-          <WandSparklesIcon className="size-7" />
+          <WandSparklesIcon className="size-8 text-primary" />
         ) : (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className="size-7"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 3l2.1 5.4L19.5 10l-5.4 2.1L12 17.5l-2.1-5.4L4.5 10l5.4-1.6L12 3z" />
-          </svg>
+          <img src={mortagiIcon} alt="Mortagi" className="size-full object-contain" />
         )}
       </div>
       <div className="space-y-1.5">

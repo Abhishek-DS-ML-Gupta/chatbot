@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import mortagiIcon from "@/assets/mortagi.svg";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -120,7 +121,12 @@ function AuthPage() {
   return (
     <main className="grid min-h-dvh bg-background lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)]">
       <section className="relative hidden overflow-hidden border-r border-border bg-sidebar p-12 lg:flex lg:flex-col lg:justify-between">
-        <div className="flex items-center gap-3 text-xl font-semibold"><span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">M</span>Mortagi</div>
+        <div className="flex items-center gap-3 text-xl font-semibold">
+          <span className="grid size-11 place-items-center overflow-hidden rounded-xl border border-border bg-card p-1 shadow-xs">
+            <img src={mortagiIcon} alt="Mortagi" className="size-full object-contain" />
+          </span>
+          Mortagi
+        </div>
         <div className="max-w-xl pb-12">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.14em] text-muted-foreground">A little more room to think</p>
           <h1 className="font-display text-5xl font-semibold leading-tight">Your ideas, in good company.</h1>
@@ -130,7 +136,12 @@ function AuthPage() {
       </section>
       <section className="flex items-center justify-center px-5 py-12">
         <div className="w-full max-w-[400px]">
-          <div className="mb-10 flex items-center gap-3 text-xl font-semibold lg:hidden"><span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">M</span>Mortagi</div>
+          <div className="mb-10 flex items-center gap-3 text-xl font-semibold lg:hidden">
+            <span className="grid size-11 place-items-center overflow-hidden rounded-xl border border-border bg-card p-1 shadow-xs">
+              <img src={mortagiIcon} alt="Mortagi" className="size-full object-contain" />
+            </span>
+            Mortagi
+          </div>
           {confirmEmail ? (
             <div className="space-y-4">
               <h2 className="font-display text-3xl font-semibold">Verify your email</h2>

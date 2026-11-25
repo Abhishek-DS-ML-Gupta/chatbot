@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
+import mortagiIcon from "@/assets/mortagi.svg";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -33,7 +34,9 @@ function Index() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
-      <div className="grid size-14 place-items-center rounded-2xl bg-primary text-xl font-semibold text-primary-foreground">M</div>
+      <div className="grid size-20 place-items-center rounded-2xl border border-border bg-card p-2 shadow-xs">
+        <img src={mortagiIcon} alt="Mortagi" className="size-full object-contain" />
+      </div>
       <p className="text-sm text-muted-foreground">Opening Mortagi…</p>
     </div>
   );
