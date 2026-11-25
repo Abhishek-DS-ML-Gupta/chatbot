@@ -492,13 +492,13 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
             className="min-h-[56px] text-[15px]"
           />
           <PromptInputFooter className="justify-between pt-1">
-            <PromptInputTools className="flex-wrap gap-1.5">
+            <PromptInputTools className="flex-nowrap items-center gap-1.5 overflow-x-auto">
               {mode === "chat" ? (
                 <PromptInputActionMenu>
                   <PromptInputActionMenuTrigger
                     tooltip="Attach files or images"
                     aria-label="Attach files or images"
-                    className="size-8 rounded-full border border-border/70 bg-muted/50 text-foreground hover:bg-muted"
+                    className="size-8 shrink-0 rounded-full border border-border/70 bg-muted/50 text-foreground hover:bg-muted"
                   >
                     <PlusIcon className="size-4" />
                   </PromptInputActionMenuTrigger>
@@ -515,7 +515,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
               >
                 <PromptInputSelectTrigger
                   aria-label="Switch mode"
-                  className={`h-8 gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors ${
+                  className={`h-8 w-auto shrink-0 gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors ${
                     mode === "image"
                       ? "border-primary/25 bg-primary/10 text-foreground hover:bg-primary/15"
                       : "border-border/70 bg-muted/50 text-foreground hover:bg-muted"
@@ -544,7 +544,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
                   <PromptInputSelect value={imageModel} onValueChange={setImageModel}>
                     <PromptInputSelectTrigger
                       aria-label="Image model"
-                      className="h-8 gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 text-xs"
+                      className="h-8 w-auto shrink-0 gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 text-xs"
                     >
                       <CpuIcon className="size-3 text-muted-foreground" />
                       <PromptInputSelectValue />
@@ -562,7 +562,7 @@ export function ChatWindow({ threadId, initialMessages, onThreadsChanged }: Chat
                     <PromptInputSelect value={aspectRatio} onValueChange={setAspectRatio}>
                       <PromptInputSelectTrigger
                         aria-label="Aspect ratio"
-                        className="h-8 gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 text-xs"
+                        className="h-8 w-auto shrink-0 gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 text-xs"
                       >
                         <RatioIcon className="size-3 text-muted-foreground" />
                         <PromptInputSelectValue />
